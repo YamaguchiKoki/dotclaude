@@ -1,0 +1,79 @@
+name: inclusive-review
+description: コード品質、テスト品質、過剰実装、偽陰性パターンの観点から並列レビューを行い、結果を集約する
+max_movements: 30
+
+personas:
+  code-quality-reviewer: ../facets/personas/code-quality-reviewer.md
+  test-quality-reviewer: ../facets/personas/test-quality-reviewer.md
+  over-implementation-reviewer: ../facets/personas/over-implementation-reviewer.md
+  false-negative-reviewer: ../facets/personas/false-negative-reviewer.md
+  supervisor: ../facets/personas/supervisor.md
+
+instructions:
+  code-quality-review-instruction: ../facets/instructions/review-from-code-quality-perspective.md
+  test-quality-review-instruction: ../facets/instructions/review-from-test-quality-perspective.md
+  over-implementation-review-instruction: ../facets/instructions/review-from-over-implementation-perspective.md
+  false-negative-review-instruction: ../facets/instructions/review-from-false-negative-perspective.md
+  aggregate-reviews-instruction: ../facets/instructions/aggregate-reviews.md
+
+output_contracts:
+  code-quality-output: ../facets/output-contracts/code-quality-result.md
+  test-quality-output: ../facets/output-contracts/test-quality-result.md
+  over-implementation-output: ../facets/output-contracts/over-implementation-result.md
+  false-negative-output: ../facets/output-contracts/false-negative-result.md
+  final-report-output: ../facets/output-contracts/final-report.md
+
+movements:
+  - name: reviewers
+    parallel:
+      - name: code-quality-review
+        edit: false
+        persona: code-quality-reviewer
+        instruction: code-quality-review-instruction
+        output_contract: code-quality-output
+        policy: review
+        rules:
+          - condition: approved
+          - condition: needs_fix
+      - name: test-quality-review
+        edit: false
+        persona: test-quality-reviewer
+        instruction: test-quality-review-instruction
+        output_contract: test-quality-output
+        policy: review
+        rules:
+          - condition: approved
+          - condition: needs_fix
+      - name: over-implementation-review
+        edit: false
+        persona: over-implementation-reviewer
+        instruction: over-implementation-review-instruction
+        output_contract: over-implementation-output
+        policy: review
+        rules:
+          - condition: approved
+          - condition: needs_fix
+      - name: false-negative-review
+        edit: false
+        persona: false-negative-reviewer
+        instruction: false-negative-review-instruction
+        output_contract: false-negative-output
+        policy: review
+        rules:
+          - condition: approved
+          - condition: needs_fix
+    rules:
+      - condition: all("approved")
+        next: supervise
+      - condition: any("needs_fix")
+        next: supervise
+
+  - name: supervise
+    edit: false
+    persona: supervisor
+    instruction: aggregate-reviews-instruction
+    output_contract: final-report-output
+    rules:
+        - next: COMPLETE
+
+
