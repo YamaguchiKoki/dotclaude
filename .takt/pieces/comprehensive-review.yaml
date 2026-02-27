@@ -1,4 +1,4 @@
-name: inclusive-review
+name: comprehensive-review
 description: コード品質、テスト品質、過剰実装、偽陰性パターンの観点から並列レビューを行い、結果を集約する
 max_movements: 30
 
