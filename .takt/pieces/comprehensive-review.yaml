@@ -74,6 +74,7 @@ movements:
     instruction: aggregate-reviews-instruction
     output_contract: final-report-output
     rules:
-        - next: COMPLETE
+      - condition: done
+        next: COMPLETE
 
 
