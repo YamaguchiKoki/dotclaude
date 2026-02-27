@@ -20,3 +20,5 @@
 !instructions/**
 !output-contracts/
 !output-contracts/**
+!facets/
+!facets/**

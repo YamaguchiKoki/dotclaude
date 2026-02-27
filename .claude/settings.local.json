@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(wc:*)",
+      "Bash(git add:*)",
+      "Bash(takt validate:*)",
+      "Bash(ls:*)",
+      "Bash(takt:*)"
+    ]
+  }
+}
