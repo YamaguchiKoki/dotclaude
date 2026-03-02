@@ -1,0 +1,185 @@
+name: resolve-ts-issue
+description: GitHub Issue を起点に React & TypeScript monorepo の要件整理・テスト先行・実装・レビュー・完了判定を行う
+piece_config:
+  provider_options:
+    codex:
+      network_access: true
+    opencode:
+      network_access: true
+max_movements: 30
+initial_movement: plan
+
+personas:
+  supervisor: ../facets/personas/supervisor.md
+
+instructions:
+  ts-issue-plan: ../facets/instructions/ts-issue-plan.md
+  ts-issue-write-tests: ../facets/instructions/ts-issue-write-tests.md
+  ts-issue-implement: ../facets/instructions/ts-issue-implement.md
+  ts-issue-ai-fix: ../facets/instructions/ts-issue-ai-fix.md
+  ts-issue-fix: ../facets/instructions/ts-issue-fix.md
+  ts-issue-supervise: ../facets/instructions/ts-issue-supervise.md
+
+output_contracts:
+  ts-issue-plan: ../facets/output-contracts/ts-issue-plan.md
+  ts-issue-adr: ../facets/output-contracts/ts-issue-adr.md
+  ts-issue-test-scope: ../facets/output-contracts/ts-issue-test-scope.md
+  ts-issue-coverage: ../facets/output-contracts/ts-issue-coverage.md
+  ts-issue-commit-log: ../facets/output-contracts/ts-issue-commit-log.md
+  ts-issue-coder-scope: ../facets/output-contracts/ts-issue-coder-scope.md
+  ts-issue-ai-review: ../facets/output-contracts/ts-issue-ai-review.md
+  final-report: ../facets/output-contracts/final-report.md
+
+movements:
+  - name: plan
+    edit: false
+    persona: planner
+    policy: review
+    allowed_tools:
+      - Read
+      - Glob
+      - Grep
+      - Bash
+    instruction: ts-issue-plan
+    output_contracts:
+      report:
+        - name: issue-plan.md
+          format: ts-issue-plan
+        - name: adr.md
+          format: ts-issue-adr
+    rules:
+      - condition: 受け入れ条件が明確で実装可能
+        next: write_tests
+      - condition: 判断不能
+        next: ABORT
+
+  - name: write_tests
+    edit: true
+    persona: coder
+    policy:
+      - coding
+      - testing
+    allowed_tools:
+      - Read
+      - Glob
+      - Grep
+      - Edit
+      - Write
+      - Bash
+    instruction: ts-issue-write-tests
+    output_contracts:
+      report:
+        - name: test-scope.md
+          format: ts-issue-test-scope
+    rules:
+      - condition: テスト作成完了・ビルド成功
+        next: implement
+      - condition: ビルド失敗・作成不能
+        next: ABORT
+
+  - name: implement
+    edit: true
+    persona: coder
+    policy:
+      - coding
+      - testing
+    session: refresh
+    allowed_tools:
+      - Read
+      - Glob
+      - Grep
+      - Edit
+      - Write
+      - Bash
+    instruction: ts-issue-implement
+    output_contracts:
+      report:
+        - name: coder-scope.md
+          format: ts-issue-coder-scope
+        - name: implementation-coverage.md
+          format: ts-issue-coverage
+        - name: commit-log.md
+          format: ts-issue-commit-log
+    rules:
+      - condition: 実装完了・全テストパス
+        next: ai_review
+      - condition: 実装不能
+        next: ABORT
+
+  - name: ai_review
+    edit: false
+    persona: ai-antipattern-reviewer
+    policy:
+      - review
+      - ai-antipattern
+    allowed_tools:
+      - Read
+      - Glob
+      - Grep
+      - Bash
+    instruction_template: |
+      変更されたファイルを確認し、AIエージェント特有のアンチパターンがないかレビューしてください。
+
+      レビュー観点：
+      - フォールバック・デフォルト値の不適切な使用（必須データへのフォールバック禁止）
+      - 不必要なフォールバックによる問題の隠蔽
+      - 過剰な防御的コーディング
+      - 未使用のコード・エクスポートの残存
+      - 後方互換性の無断追加
+      - リファクタリング後の旧コード残存
+
+      レビュー結果を ai-review.md に出力してください。
+    output_contracts:
+      report:
+        - name: ai-review.md
+          format: ts-issue-ai-review
+    rules:
+      - condition: AI特有の問題なし
+        next: supervise
+      - condition: AI特有の問題あり
+        next: ai_fix
+
+  - name: ai_fix
+    edit: true
+    persona: coder
+    policy:
+      - coding
+      - testing
+    session: refresh
+    allowed_tools:
+      - Read
+      - Glob
+      - Grep
+      - Edit
+      - Write
+      - Bash
+    instruction: ts-issue-ai-fix
+    output_contracts:
+      report:
+        - name: commit-log.md
+          format: ts-issue-commit-log
+    rules:
+      - condition: 修正完了
+        next: supervise
+      - condition: 修正不能
+        next: ABORT
+
+  - name: supervise
+    edit: false
+    persona: supervisor
+    policy: review
+    allowed_tools:
+      - Read
+      - Glob
+      - Grep
+      - Bash
+    instruction: ts-issue-supervise
+    output_contracts:
+      report:
+        - name: final-report.md
+          format: final-report
+    rules:
+      - condition: 全受け入れ条件を充足
+        next: COMPLETE
+      - condition: 未達あり
+        next: COMPLETE
